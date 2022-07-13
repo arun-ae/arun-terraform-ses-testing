@@ -103,7 +103,7 @@ resource "aws_route53_record" "mx_send_mail_from" {
   name    = aws_ses_domain_mail_from.default[count.index].mail_from_domain
   type    = var.mx_type
   ttl     = "600"
-  records = [format("10 feedback-smtp.%s.amazonses.com", data.aws_region.current.name)]
+  records = ["10 feedback-smtp.%s.amazonses.com"]
 }
 
 ###Receiving MX Record#######
@@ -116,82 +116,82 @@ resource "aws_route53_record" "mx_receive" {
   name    = var.domain
   type    = var.mx_type
   ttl     = "600"
-  records = [format("10 inbound-smtp.%s.amazonaws.com", data.aws_region.current.name)]
+  records = ["10 inbound-smtp.%s.amazonaws.com"]
 }
 
-#Module      : SES FILTER
-#Description : Terraform module to create receipt filter on AWS
-resource "aws_ses_receipt_filter" "default" {
-  count  = var.enable_filter ? 1 : 0
-  name   = var.filter_name
-  cidr   = var.filter_cidr
-  policy = var.filter_policy
-}
+# #Module      : SES FILTER
+# #Description : Terraform module to create receipt filter on AWS
+# resource "aws_ses_receipt_filter" "default" {
+#   count  = var.enable_filter ? 1 : 0
+#   name   = var.filter_name
+#   cidr   = var.filter_cidr
+#   policy = var.filter_policy
+# }
 
 #Module      : SES BUCKET POLICY
 #Description : Document of Policy to create Identity policy of SES
-data "aws_iam_policy_document" "document" {
-  statement {
-    actions   = ["SES:SendEmail", "SES:SendRawEmail"]
-    resources = [aws_ses_domain_identity.default[0].arn]
-    principals {
-      identifiers = ["*"]
-      type        = "AWS"
-    }
-  }
-}
+# data "aws_iam_policy_document" "document" {
+#   statement {
+#     actions   = ["SES:SendEmail", "SES:SendRawEmail"]
+#     resources = [aws_ses_domain_identity.default[0].arn]
+#     principals {
+#       identifiers = ["*"]
+#       type        = "AWS"
+#     }
+#   }
+# }
 
-#Module      : SES IDENTITY POLICY
-#Description : Terraform module to create ses identity policy on AWS
-resource "aws_ses_identity_policy" "default" {
-  count    = var.enable_policy ? 1 : 0
-  identity = aws_ses_domain_identity.default.*.arn
-  name     = var.policy_name
-  policy   = data.aws_iam_policy_document.document.json
-}
+# #Module      : SES IDENTITY POLICY
+# #Description : Terraform module to create ses identity policy on AWS
+# resource "aws_ses_identity_policy" "default" {
+#   count    = var.enable_policy ? 1 : 0
+#   identity = aws_ses_domain_identity.default.*.arn
+#   name     = var.policy_name
+#   policy   = data.aws_iam_policy_document.document.json
+# }
 
 #Module      : SES TEMPLATE
 #Description : Terraform module to create template on AWS
-resource "aws_ses_template" "default" {
-  count   = var.enable_template ? 1 : 0
-  name    = var.template_name
-  subject = var.template_subject
-  html    = var.template_html
-  text    = var.text
-}
+# resource "aws_ses_template" "default" {
+#   count   = var.enable_template ? 1 : 0
+#   name    = var.template_name
+#   subject = var.template_subject
+#   html    = var.template_html
+#   text    = var.text
+# }
 
 
 ###SMTP DETAILS#######
 
-# Module      : IAM USER
-# Description : Terraform module which creates SMTP Iam user resource on AWS
-resource "aws_iam_user" "default" {
-  count = var.iam_name != "" ? 1 : 0
-  name  = var.iam_name
-}
+# # Module      : IAM USER
+# # Description : Terraform module which creates SMTP Iam user resource on AWS
+# resource "aws_iam_user" "default" {
+#   count = var.iam_name != "" ? 1 : 0
+#   name  = var.iam_name
+# }
 
 # Module      : IAM ACCESS KEY
-# Description : Terraform module which creates SMTP Iam access key resource on AWS
-resource "aws_iam_access_key" "default" {
-  count = var.iam_name != "" ? 1 : 0
-  user  = join("", aws_iam_user.default.*.name)
-}
+# # Description : Terraform module which creates SMTP Iam access key resource on AWS
+# resource "aws_iam_access_key" "default" {
+#   count = var.iam_name != "" ? 1 : 0
+#   user  = join("", aws_iam_user.default.*.name)
+# }
 
-# Module      : IAM USER POLICY
-# Description : Terraform module which creates SMTP Iam user policy resource on AWS
-resource "aws_iam_user_policy" "default" {
-  count  = var.iam_name != "" ? 1 : 0
-  name   = var.iam_name
-  user   = join("", aws_iam_user.default.*.name)
-  policy = data.aws_iam_policy_document.allow_iam_name_to_send_emails.json
-}
+# # Module      : IAM USER POLICY
+# # Description : Terraform module which creates SMTP Iam user policy resource on AWS
+# resource "aws_iam_user_policy" "default" {
+#   count  = var.iam_name != "" ? 1 : 0
+#   name   = var.iam_name
+#   user   = join("", aws_iam_user.default.*.name)
+#   policy = data.aws_iam_policy_document.allow_iam_name_to_send_emails.json
+# }
 
-# Module      : IAM USER POLICY DOCUMENT
-# Description : Terraform module which creates SMTP Iam user policy document resource on AWS
-#tfsec:ignore:aws-iam-no-policy-wildcards
-data "aws_iam_policy_document" "allow_iam_name_to_send_emails" {
-  statement {
-    actions   = ["ses:SendRawEmail"]
-    resources = ["*"]
-  }
-}
+# # Module      : IAM USER POLICY DOCUMENT
+# # Description : Terraform module which creates SMTP Iam user policy document resource on AWS
+# #tfsec:ignore:aws-iam-no-policy-wildcards
+# data "aws_iam_policy_document" "allow_iam_name_to_send_emails" {
+#   statement {
+#     actions   = ["ses:SendRawEmail"]
+#     resources = ["*"]
+#   }
+# }
