@@ -2,13 +2,13 @@
 ## Description : This Script is used to create SES Domain Identity, Identity Verification, Domain Dkim And Verification With Route53.
 ## Copyright @ CloudDrove. All Right Reserved.
 
-locals {
-#   # some ses resources don't allow for the terminating '.' in the domain name
-#   # so use a replace function to strip it out
-#   stripped_domain_name      = replace(var.domain, "/[.]$/", "")
-  stripped_mail_from_domain = replace(var.mail_from_domain, "/[.]$/", "")
-#   dash_domain               = replace(var.domain, ".", "-")
-}
+# locals {
+# #   # some ses resources don't allow for the terminating '.' in the domain name
+# #   # so use a replace function to strip it out
+# #   stripped_domain_name      = replace(var.domain, "/[.]$/", "")
+#   stripped_mail_from_domain = replace(var.mail_from_domain, "/[.]$/", "")
+# #   dash_domain               = replace(var.domain, ".", "-")
+# }
 
 #Module      : DOMAIN IDENTITY
 #Description : Terraform module to create domain identity using domain
@@ -24,7 +24,7 @@ resource "aws_ses_domain_identity" "default" {
 resource "aws_ses_domain_identity_verification" "default" {
   count      = var.enable_verification ? 1 : 0
   domain     = aws_ses_domain_identity.default[count.index].id
-  # depends_on = [aws_route53_record.ses_verification]
+  depends_on = [aws_route53_record.ses_verification]
 }
 
 #Module      : DOMAIN IDENTITY VERIFICATION ROUTE53
@@ -54,7 +54,7 @@ resource "aws_route53_record" "dkim" {
   name    = var.domain
   type    = var.cname_type
   ttl     = 600
-  records = [format("%s.dkim.amazonses.com", element(aws_ses_domain_dkim.default.dkim_tokens, count.index))]
+  records = [aws_ses_domain_dkim.default.dkim_tokens, count.index]
 }
 
 ###SES MAIL FROM DOMAIN#######
@@ -75,7 +75,7 @@ resource "aws_ses_domain_mail_from" "default" {
 resource "aws_route53_record" "spf_mail_from" {
   count   = var.enable_mail_from ? 1 : 0
   zone_id = var.zone_id
-  name    = aws_ses_domain_mail_from.default[count.index].mail_from_domain
+  name    = var.domain
   type    = var.txt_type
   ttl     = "600"
   records = ["v=spf1 include:amazonses.com -all"]
@@ -101,10 +101,10 @@ data "aws_region" "current" {}
 resource "aws_route53_record" "mx_send_mail_from" {
   count   = var.zone_id != "" && var.enable_mail_from ? 1 : 0
   zone_id = var.zone_id
-  name    = aws_ses_domain_mail_from.default[count.index].mail_from_domain
+  name    = var.domain
   type    = var.mx_type
   ttl     = "600"
-  records = ["10 feedback-smtp.%s.amazonses.com"]
+  records = ["10 feedback-smtp.us-east-1.amazonses.com"]
 }
 
 ###Receiving MX Record#######
@@ -117,7 +117,7 @@ resource "aws_route53_record" "mx_receive" {
   name    = var.domain
   type    = var.mx_type
   ttl     = "600"
-  records = ["10 inbound-smtp.%s.amazonaws.com"]
+  records = ["10 feedback-smtp.us-east-1.amazonses.com"]
 }
 
 # #Module      : SES FILTER
