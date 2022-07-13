@@ -24,7 +24,7 @@ resource "aws_ses_domain_identity" "default" {
 resource "aws_ses_domain_identity_verification" "default" {
   count      = var.enable_verification ? 1 : 0
   domain     = aws_ses_domain_identity.default[count.index].id
-  depends_on = [aws_route53_record.ses_verification]
+  # depends_on = [aws_route53_record.ses_verification]
 }
 
 #Module      : DOMAIN IDENTITY VERIFICATION ROUTE53
@@ -51,7 +51,7 @@ resource "aws_ses_domain_dkim" "default" {
 resource "aws_route53_record" "dkim" {
   count   = var.zone_id != "" ? 3 : 0
   zone_id = var.zone_id
-  name    = format("%s._domainkey.%s", element(aws_ses_domain_dkim.default.dkim_tokens, count.index), var.domain)
+  name    = var.domain
   type    = var.cname_type
   ttl     = 600
   records = [format("%s.dkim.amazonses.com", element(aws_ses_domain_dkim.default.dkim_tokens, count.index))]
@@ -63,7 +63,7 @@ resource "aws_route53_record" "dkim" {
 #Description : Terraform module to create domain mail from on AWS
 resource "aws_ses_domain_mail_from" "default" {
   count            = var.enable_mail_from ? 1 : 0
-  domain           = aws_ses_domain_identity.default.*.domain
+  domain           = var.domain
   mail_from_domain = var.mail_from_domain
   behavior_on_mx_failure = "UseDefaultValue"
 }
