@@ -37,6 +37,11 @@ variable "enable_domain" {
   default     = true
   description = "Control whether or not to enable domain."
 }
+# variable "mail_from_domain" {
+#   default     = ""
+#   description = "Control whether or not to enable domain."
+# }
+
 
 variable "enable_mx" {
   type        = bool

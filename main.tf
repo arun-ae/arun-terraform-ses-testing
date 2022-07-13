@@ -64,7 +64,8 @@ resource "aws_route53_record" "dkim" {
 resource "aws_ses_domain_mail_from" "default" {
   count            = var.enable_mail_from ? 1 : 0
   domain           = aws_ses_domain_identity.default.*.domain
-  mail_from_domain = local.stripped_mail_from_domain
+  mail_from_domain = var.mail_from_domain
+  behavior_on_mx_failure = "UseDefaultValue"
 }
 
 ###SPF validaton record#######
