@@ -35,7 +35,7 @@ jobs:
    - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
      displayName: 'terraform validate'
      inputs:
-       awsCredentials: devsand_ar
+       awsCredentials: gbstdev
        regionName: 'us-east-1'
        scriptType: inline
        inlineScript: |
@@ -48,13 +48,13 @@ jobs:
    - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
      displayName: 'terraform plan'
      inputs:
-       awsCredentials: devsand_ar
+       awsCredentials: gbstdev
        regionName: 'us-east-1'
        scriptType: inline
        inlineScript: |
          export ENVIRONMENT=DV1
          make terraform_plan
-       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-aws-ses'
+       workingDirectory: '$(System.DefaultWorkingDirectory)/infra-gen-ses-terraform'
    - bash: |
       rm -rf ".terraform"
       rm -rf "terraform"
@@ -65,7 +65,7 @@ jobs:
      displayName: 'remove unwanted folders'
    
    - task: PublishBuildArtifacts@1
-     displayName: 'Publish Artifact: terraform-aws-ses'
+     displayName: 'Publish Artifact: infra-gen-ses-terraform'
      inputs:
        PathtoPublish: '$(Build.SourcesDirectory)'
-       ArtifactName: terraform-aws-ses
+       ArtifactName: infra-gen-ses-terraform
