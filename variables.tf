@@ -1,3 +1,10 @@
+variable "aws_primary_region"{
+  description = "primary reagion for provider"
+}
+
+
+
+
 #Module      : DOMAIN IDENTITY
 #Description : Terraform domain identity module variables.
 variable "domain" {
